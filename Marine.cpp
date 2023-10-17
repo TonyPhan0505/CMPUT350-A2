@@ -6,3 +6,4 @@ Marine :: Marine(Team team, const Vec2 &pos, AttackPolicy pol, bool bounce) : Un
     this -> bounce = bounce;
 }
 
+void Marine :: act(World &w) {}
