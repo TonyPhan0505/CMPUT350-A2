@@ -5,7 +5,6 @@
 #include <sstream>
 #include <cstring>
 #include <chrono>
-#include <GL/glut.h>
 #include "World.h"
 #include "Unit.h"
 #include "Marine.h"
@@ -37,218 +36,103 @@ public:
   vector<const Unit*> attacks;
 };
 
-
-void OnDisplay()
+int main()
 {
-  glClear(GL_COLOR_BUFFER_BIT);
-  glPushAttrib(GL_ALL_ATTRIB_BITS);
-
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  glOrtho(0, world->width, world->height, 0, 0, 1);
-  glMatrixMode(GL_MODELVIEW);
-  // (0,0) top left, (width,height) bottom right
-
-  glutPostRedisplay();
-
-#if 0
-  // render walls
-  glBegin(GL_LINE_STRIP);
-  glColor3f(1, 1, 1); 
-  glVertex2f(1, 1);
-  glVertex2f(world->width-1, 1);
-  glVertex2f(world->width-1, world->height-1);
-  glVertex2f(1, world->height-1);
-  glVertex2f(1, 1);
-  glEnd();
-#endif
-
-  // render units
-  for(size_t i=0; i < world->units.size(); ++i) {
-    Unit &u = *world->units[i];
-    // cout << "u " << u.pos.x << " " << u.pos.y << " " << u.radius << endl;
-
-    if (u.team == RED) {
-      glColor3f(1, 0.4, 0);
-    } else {
-      glColor3f(0, 1, 1);
-    }
-
-    // approximate circle
-    glBegin(GL_LINE_STRIP);
-    for(size_t j=0; j <= 16; ++j) {
-      const double angle((j%16)*M_PI*2/16);
-      glVertex2f(u.pos.x + cos(angle) * u.radius,
-                 u.pos.y + sin(angle) * u.radius);
-      // cout << pos.x + cos(angle) * radius << " " << pos.y + sin(angle)*radius << endl;
-    }
-    glEnd();
-		
-    // print the hp inside the unit
-		
-    glRasterPos2f(u.pos.x-8, u.pos.y+4);
-    stringstream hpsStream;
-    hpsStream << u.hp;
-    const string temp = hpsStream.str();
-    const char *hps = temp.c_str();
-    int hpsLen = strlen(hps);
-
-    for(int i = 0; i < hpsLen; i++) {
-      glutBitmapCharacter(GLUT_BITMAP_8_BY_13, hps[i]);
-    }
-  }
-
-  // render attacks
-  // todo: draw arrow heads to indicate who is attacking whom
-  size_t j=0;
-  assert((world->attacks.size() & 1) == 0);
-  while (j < world->attacks.size()) {
-    glBegin(GL_LINE_STRIP);
-    glColor3f(1, 1, 1);
-    const Unit &u = *world->attacks[j];
-    const Unit &v = *world->attacks[j+1];
-    glVertex2f(u.pos.x, u.pos.y);
-    glVertex2f(v.pos.x, v.pos.y);
-    glEnd();
-    //cout << "plot: " << sqrt(world->distance2(u, v)) << " " << u.attack_radius + v.radius << endl;
-    j += 2;
-  }
-
-  glPopAttrib();
-  glutSwapBuffers();
-}
-
-void timer_function(int)
-{
-  cout << "." << flush;
-  world->attacks.clear();
-  world->step();
-
-  int red_score = world->red_score();
-  if (red_score >= 0) {
-    cout << "game over: ";
-    if (red_score == 2) {
-      cout << "RED wins" << endl;
-    } else if (red_score == 1) {
-      cout << "draw" << endl;
-    } else {
-      cout << "BLUE wins" << endl;
-    }
-    delete world;
-    exit(0);
-  }
-  glutTimerFunc(delay, timer_function, 0); // 10 frames/sec
-}
-
-
-
-int main(int argc, char *argv[])
-{
-  if (argc != 1 && argc != 10) {
-    cerr << "usage: " << argv[0] << " width height delay seed marines tanks redpol bluepol bounce" << endl;
-    cerr << "       delay in ms, seed=0: use time, policies: 0 weakest/1 closest/2 most dangerous" << endl;
-    exit(1);
-  }
-
+  /* ------------- Set up experiment ------------- */
   double width  = 700;
   double height = 700;
-
-  delay = 100;     // frame delay in ms
-  int seed = 0;    // for rng, 0: use time
-
-  int n_marines = 100;
-  int n_tanks   = 100;
-
-  AttackPolicy red_policy = ATTACK_MOST_DANGEROUS;
-  AttackPolicy blue_policy = ATTACK_MOST_DANGEROUS;  
-
+  int n_marines = 20;
+  int n_tanks   = 20;
+  AttackPolicy red_policies[2] = {ATTACK_CLOSEST, ATTACK_WEAKEST};
+  AttackPolicy blue_policies[2] = {ATTACK_WEAKEST, ATTACK_MOST_DANGEROUS};  
   bool bounce = true;
+  // rng seed dependent on wallclock time
+  unsigned long long millis =
+    std::chrono::duration_cast<std::chrono::milliseconds>
+    (std::chrono::system_clock::now().time_since_epoch()).count();
+  int seed = millis;
+  /* ----------------------------------------------------- */
 
-  if (argc == 10) {
-    // todo : error handling
-    int i = 1;
-    width = atoi(argv[i++]);
-    height = atoi(argv[i++]);
-    delay = atoi(argv[i++]);
-    seed = atoi(argv[i++]);
-    n_marines = atoi(argv[i++]);
-    n_tanks = atoi(argv[i++]);
-    red_policy = (AttackPolicy)atoi(argv[i++]);
-    blue_policy = (AttackPolicy)atoi(argv[i++]);
-    bounce = atoi(argv[i++]);
+
+  /* ------------------- Experiment --------------------- */
+  cout << "------------------ Experiment --------------------" << endl;
+  int time = 1;
+  while (time <= 100) {
+    cout << "" << endl;  // blank line
+    cout << "********** Time: " << time << endl;
+    world = new GfxWorld(width, height, seed);
+    cout << "********** Settings:" << endl;
+    if (time == 1) {
+      cout << "> width: " << width << endl;
+      cout << "> height: " << height << endl;
+      cout << "> seed: " << seed << endl;
+      cout << "> marines: " << n_marines << endl;
+      cout << "> tanks: " << n_tanks   << endl;
+      cout << "> bounce:  "  << bounce << endl;
+    }
+    int rp_index = 0;
+    int bp_index = 0;
+    while (rp_index <= 1) {
+      while (bp_index <= 1) {
+        // while game not over yet
+        while ((world->units).size() > 0 && (world -> red_score()) == -1) {
+          if (blue_policies[bp_index] != red_policies[rp_index]) {
+            AttackPolicy red_policy = red_policies[rp_index];
+            AttackPolicy blue_policy = blue_policies[bp_index];
+
+            cout << "> Scenario:" << endl;
+            cout << apol2str(red_policy) << " vs " << apol2str(blue_policy) << endl;
+
+            // get unit sizes - a bit awkward, could be data members
+            Marine *m = new Marine(RED, Vec2(0, 0), ATTACK_WEAKEST, false);
+            double mr = m->radius;
+            delete m;
+            Tank *t = new Tank(RED, Vec2(0, 0), ATTACK_WEAKEST, false);
+            double tr = t->radius;
+            delete t;
+
+            // create marines
+            for (int i=0; i < n_marines; ++i) {
+              Unit *u = new Marine(RED, world->rnd_pos(mr), red_policy, bounce);
+              u->heading = world->rnd_heading();
+              u->current_speed = u->max_speed;
+              world->units.push_back(u);
+
+              // mirrored    
+              Unit *v = new Marine(BLUE, world->mirror(u->pos), blue_policy, bounce);
+              v->heading = Vec2(-u->heading.x, -u->heading.y); 
+              v->current_speed = v->max_speed;
+              world->units.push_back(v);
+            }
+
+            // create tanks
+            for (int i=0; i < n_tanks; ++i) {
+              Unit *u = new Tank(RED, world->rnd_pos(tr), red_policy, bounce);
+              u->heading = world->rnd_heading();
+              u->current_speed = u->max_speed;
+              world->units.push_back(u);
+
+              // mirrored    
+              Unit *v = new Tank(BLUE, world->mirror(u->pos), blue_policy, bounce);
+              v->heading = Vec2(-u->heading.x, -u->heading.y); 
+              v->current_speed = v->max_speed;    
+              world->units.push_back(v);
+            }
+
+            // make the units move and fight each other
+            world -> step();
+          } else {
+            break;
+          }
+        }
+        bp_index += 1;
+      }
+      rp_index += 1;
+    }
+    delete world;
+    time += 1;
   }
+  /* ---------------------------------------------------- */
 
-  if (seed == 0) {
-    // rng seed dependent on wallclock time
-    unsigned long long millis =
-      std::chrono::duration_cast<std::chrono::milliseconds>
-      (std::chrono::system_clock::now().time_since_epoch()).count();
-
-    seed = millis;
-  }
-
-  cout << "width: "    << width     << endl;
-  cout << "height: "   << height    << endl;
-  cout << "delay: "    << delay     << endl;
-  cout << "seed: "     << seed      << endl;
-  cout << "marines: "  << n_marines << endl;
-  cout << "tanks: "    << n_tanks   << endl;
-  cout << "redpol: "   << apol2str(red_policy) << endl;
-  cout << "bluepol: "  << apol2str(blue_policy) << endl;
-  cout << "bounce:  "  << bounce << endl;
-
-  // set up world
-  world = new GfxWorld(width, height, seed);
-
-  // populate with units
-
-  // get unit sizes - a bit awkward, could be data members
-  Marine *m = new Marine(RED, Vec2(0, 0), ATTACK_WEAKEST, false);
-  double mr = m->radius;
-  delete m;
-  Tank *t = new Tank(RED, Vec2(0, 0), ATTACK_WEAKEST, false);
-  double tr = t->radius;
-  delete t;
-
-  AttackPolicy red_marine_policy  = red_policy;
-  AttackPolicy blue_marine_policy = blue_policy;
-  AttackPolicy red_tank_policy    = red_policy;
-  AttackPolicy blue_tank_policy   = blue_policy;
-
-  // create marines
-  for (int i=0; i < n_marines; ++i) {
-    Unit *u = new Marine(RED, world->rnd_pos(mr), red_marine_policy, bounce);
-    u->heading = world->rnd_heading();
-    u->current_speed = u->max_speed;
-    world->units.push_back(u);
-
-    // mirrored    
-    Unit *v = new Marine(BLUE, world->mirror(u->pos), blue_marine_policy, bounce);
-    v->heading = Vec2(-u->heading.x, -u->heading.y); 
-    v->current_speed = v->max_speed;
-    world->units.push_back(v);
-  }
-
-  // create tanks
-  for (int i=0; i < n_tanks; ++i) {
-    Unit *u = new Tank(RED, world->rnd_pos(tr), red_tank_policy, bounce);
-    u->heading = world->rnd_heading();
-    u->current_speed = u->max_speed;
-    world->units.push_back(u);
-
-    // mirrored    
-    Unit *v = new Tank(BLUE, world->mirror(u->pos), blue_tank_policy, bounce);
-    v->heading = Vec2(-u->heading.x, -u->heading.y); 
-    v->current_speed = v->max_speed;    
-    world->units.push_back(v);
-  }
-
-  glutInit(&argc,argv);
-  glutInitWindowSize(width, height);
-  glutInitDisplayMode(GLUT_DOUBLE);
-  glutCreateWindow("CMPUT 350 - Assignment Example App");
-  glutDisplayFunc(OnDisplay);
-  glutTimerFunc(1, timer_function,0);
-  glutMainLoop();
   return 0;
 }
