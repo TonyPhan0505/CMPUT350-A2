@@ -61,8 +61,8 @@ int main()
     cout << "\n" << endl;  // blank line
     cout << "********** Time: " << time << endl;
     world = new GfxWorld(width, height, seed);
-    cout << "********** Settings:" << endl;
     if (time == 1) {
+      cout << "********** Settings:" << endl;
       cout << "> width: " << width << endl;
       cout << "> height: " << height << endl;
       cout << "> seed: " << seed << endl;
@@ -74,6 +74,7 @@ int main()
     int bp_index = 0;
     while (rp_index <= 1) {
       while (bp_index <= 1) {
+        (world->units).clear();
         if (blue_policies[bp_index] != red_policies[rp_index]) {
           AttackPolicy red_policy = red_policies[rp_index];
           AttackPolicy blue_policy = blue_policies[bp_index];
@@ -91,13 +92,13 @@ int main()
 
           // create marines
           for (int i=0; i < n_marines; ++i) {
-            Unit *u = new Marine(RED, world->rnd_pos(mr), red_policy, bounce);
+            Unit *u = new Marine(BLUE, world->rnd_pos(mr), blue_policy, bounce);
             u->heading = world->rnd_heading();
             u->current_speed = u->max_speed;
             world->units.push_back(u);
 
             // mirrored    
-            Unit *v = new Marine(BLUE, world->mirror(u->pos), blue_policy, bounce);
+            Unit *v = new Marine(RED, world->mirror(u->pos), red_policy, bounce);
             v->heading = Vec2(-u->heading.x, -u->heading.y); 
             v->current_speed = v->max_speed;
             world->units.push_back(v);
@@ -105,17 +106,19 @@ int main()
 
           // create tanks
           for (int i=0; i < n_tanks; ++i) {
-            Unit *u = new Tank(RED, world->rnd_pos(tr), red_policy, bounce);
+            Unit *u = new Tank(BLUE, world->rnd_pos(tr), blue_policy, bounce);
             u->heading = world->rnd_heading();
             u->current_speed = u->max_speed;
             world->units.push_back(u);
 
             // mirrored    
-            Unit *v = new Tank(BLUE, world->mirror(u->pos), blue_policy, bounce);
+            Unit *v = new Tank(RED, world->mirror(u->pos), red_policy, bounce);
             v->heading = Vec2(-u->heading.x, -u->heading.y); 
             v->current_speed = v->max_speed;    
             world->units.push_back(v);
           }
+
+          cout << "@@World size: " << (world->units).size() << endl;
 
           // while game not over yet
           int count = 1;
@@ -128,19 +131,19 @@ int main()
             count += 1;
           }
           if (status == 2) {
-            cout << "********** Result: red won" << endl;
+            cout << "********** Result: " << apol2str(red_policy) << " won" << endl;
           } else if (status == 0) {
-            cout << "********** Result: blue won" << endl;
+            cout << "********** Result: " << apol2str(blue_policy) << " won" << endl;
           } else if (status == 1) {
             cout << "********** Result: draw" << endl;
           }
-        } else {
-          break;
         }
         bp_index += 1;
       }
       rp_index += 1;
+      bp_index = 0;
     }
+    (world->units).clear();
     delete world;
     time += 1;
   }

@@ -38,9 +38,23 @@ void World::step()
   //int killed = 0;
   for (size_t i=0; i < units.size(); i++) {
     if (units[i]->hp <= 0) {
+      if (units[i] -> radius == 10) {
+        if (units[i] -> team == Team::RED) {
+          cout << "RED marine killed" << endl;
+        } else {
+          cout << "BLUE marine killed" << endl;
+        }
+      } else {
+        if (units[i] -> team == Team::RED) {
+          cout << "RED tank killed" << endl;
+        } else {
+          cout << "BLUE tank killed" << endl;
+        }
+      }
       delete units[i];
       units[i] = units[units.size()-1];
       units.pop_back();
+      cout << "@@World size: " << (this->units).size() << endl;
       --i;
       //++killed;
     }

@@ -1,34 +1,30 @@
 Describe your experimental setup and your results.
 
 Setup:
-    _ Each experiment is made of the combination (width, height, #marines, #tanks, bounce, attack policies).
-    _ Each experiment has a unique combination of (#marines, #tanks, bounce).
-    _ So, there will be 8 experiments:
+    _ Each experiment is made of the combination (width, height, #marines, #tanks, bounce = true, attack policies).
+    _ Each experiment has a unique combination of (#marines, #tanks).
+    _ So, there will be 4 experiments:
         #1: (700, 700, 20, 20, true, red_pols, blue_pols)
         #2: (700, 700, 50, 50, true, red_pols, blue_pols)
         #3: (700, 700, 100, 100, true, red_pols, blue_pols)
         #4: (700, 700, 300, 300, true, red_pols, blue_pols)
-        #5: (700, 700, 20, 20, false, red_pols, blue_pols)
-        #6: (700, 700, 50, 50, false, red_pols, blue_pols)
-        #7: (700, 700, 100, 100, false, red_pols, blue_pols)
-        #8: (700, 700, 300, 300, false, red_pols, blue_pols)
     _ Each experiment will have 3 scenarios to compare our 3 attack policies:
         > red (ATTACK_CLOSEST) vs blue (ATTACK_WEAKEST)
         > red (ATTACK_CLOSEST) vs blue (ATTACK_MOST_DANGEROUS)
         > red (ATTACK_WEAKEST) vs blue (ATTACK_MOST_DANGEROUS)
-    _ After each scenario, the winning team, its corresponding attack policy and the number of its remaining units are recorded.
-    _ The winning attack policy of an experiment is the policy that wins twice. 
-    _ If there are more than 1 policies that win twice, then we break the tie by determining which has the most number of units left.
+    _ At the beginning of each scenario in each experiment, the world must be empty.
+    _ After each scenario, the winning attack policy is recorded.
     _ Each experiment is run 100 times.
-    _ The overall best attack policy is the one that wins most often after 8 experiments.
+    _ The best attack policy of an experiment is the one that wins most often after 100 times (each time with 3 scenarios).
+    _ The overall best attack policy is the one that wins most often after all 4 experiments.
 
 Results:
-    _ Winning attack policy of experiment #1:
-    _ Winning attack policy of experiment #2:
-    _ Winning attack policy of experiment #3:
-    _ Winning attack policy of experiment #4:
-    _ Winning attack policy of experiment #5:
-    _ Winning attack policy of experiment #6:
-    _ Winning attack policy of experiment #7:
-    _ Winning attack policy of experiment #8:
-    _ Overall best attack policy:
+    _ Experiment #1:
+        > Winner: ATTACK_MOST_DANGEROUS (won 200/300 times)
+    _ Experiment #2:
+        > Winner: ATTACK_MOST_DANGEROUS (won 200/300 times)
+    _ Experiment #3:
+        > Winner: ATTACK_MOST_DANGEROUS (won 200/300 times)
+    _ Experiment #4:
+        > Winner: ATTACK_MOST_DANGEROUS (won 200/300 times)
+    _ Overall best attack policy: ATTACK_MOST_DANGEROUS
