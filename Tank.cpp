@@ -12,13 +12,15 @@ void Tank :: act(World &w) {
     Unit* attacker = this;
     Unit* attacked = nullptr;
     if ((this -> policy) == AttackPolicy::ATTACK_WEAKEST) {
-        attacked = w.random_weakest_target(*this);
+        attacked = w.random_weakest_target(*attacker);
     } else if ((this -> policy) == AttackPolicy::ATTACK_CLOSEST) {
-        attacked = w.random_closest_target(*this);
+        attacked = w.random_closest_target(*attacker);
     } else {
-        attacked = w.random_most_dangerous_target(*this);
+        attacked = w.random_most_dangerous_target(*attacker);
     }
-    w.attack(*this, *attacked);
+    if (attacked != 0) {
+        w.attack(*attacker, *attacked);
+    }
 }
 
 void Tank :: collision_hook(double prev_speed, bool collisions[4]) {

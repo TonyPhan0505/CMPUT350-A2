@@ -3,6 +3,8 @@
 #include <limits>
 #include "Unit.h"
 #include "World.h"
+#include <iostream>
+using namespace std;
 
 // THIS FILE WILL NOT BE SUBMITTED
 // ANY CHANGES HERE WE WON'T SEE
@@ -33,14 +35,14 @@ double World::rnd01() const
 void World::step()
 {
   // remove dead objects
-  int killed = 0;
-  for (size_t i=0; i < units.size(); ++i) {
+  //int killed = 0;
+  for (size_t i=0; i < units.size(); i++) {
     if (units[i]->hp <= 0) {
       delete units[i];
       units[i] = units[units.size()-1];
       units.pop_back();
       --i;
-      ++killed;
+      //++killed;
     }
   }
 

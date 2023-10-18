@@ -116,12 +116,16 @@ int main()
             v->current_speed = v->max_speed;    
             world->units.push_back(v);
           }
+
           // while game not over yet
+          int count = 1;
           int status = world -> red_score();
           while ((world->units).size() > 0 && (status == -1)) {
             // make the units move and fight each other
             world -> step();
             status = world -> red_score();
+            cout << "passed simulation frame " << count << endl;
+            count += 1;
           }
           if (status == 2) {
             cout << "********** Result: red won" << endl;
