@@ -24,7 +24,10 @@ void Marine :: act(World &w) {
 void Marine :: collision_hook(double prev_speed, bool collisions[4]) {
     if (this -> bounce) {
         this -> current_speed = prev_speed;
-        (this -> heading).x = -((this -> heading).x);
-        (this -> heading).y = -((this -> heading).y);
+        if (collisions[0] || collisions[1]) {
+            heading.x = -(heading.x);
+        } else if (collisions[2] || collisions[3]) {
+            heading.y = -(heading.y);
+        }
     }
 }
