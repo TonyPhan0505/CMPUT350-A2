@@ -40,28 +40,28 @@ void World :: move_unit(Unit &u)
   bool bottom = false;
   if ((newX + u.radius) >= width) {
     right = true;
-    // handle clipping
+    // keep unit in the map
     if ((newX + u.radius) > width) {
       newX = width - u.radius;
     }
   }
   if ((newX - u.radius) <= 0) {
     left = true;
-    // handle clipping
+    // keep unit in the map
     if ((newX - u.radius) < 0) {
       newX = u.radius;
     }
   }
   if ((newY - u.radius) <= 0) {
     top = true;
-    // handle clipping
+    // keep unit in the map
     if ((newY - u.radius) < 0) {
       newY = u.radius;
     }
   }
   if ((newY + u.radius) >= height) {
     bottom = true;
-    // handle clipping
+    // keep unit in the map
     if ((newY + u.radius) > height) {
       newY = height - u.radius;
     }
@@ -101,6 +101,9 @@ World :: ~World()
   // clean up
   
   // ... implement
+  for (size_t i = 0; i < units.size(); i++) {
+    delete units[i];
+  }
   units.clear();
 }
 
@@ -140,10 +143,12 @@ Vec2 World :: rnd_heading() const
   uniform_real_distribution<double> distribution(-1.0, 1.0);
   double randomX = 0.0;
   double randomY = 0.0;
-  while (sqrt(randomX * randomX + randomY * randomY) != 1.0) {
+  double length;
+  do {
     randomX = distribution(rng);
     randomY = distribution(rng);
-  }
+    length = sqrt(randomX * randomX + randomY * randomY);
+  } while (length >= 1.0);
   return Vec2(randomX, randomY);
 }
 
@@ -177,7 +182,8 @@ bool World :: can_attack(const Unit &u, const Unit &v)
 {
   // ... implement
   double distance = distance2(u, v);
-  return distance < (u.attack_radius + v.radius);
+  // if the unit is an enemy and within attack range
+  return (&u != &v) && (u.team != v.team) && (distance < (u.attack_radius + v.radius));
 }
 
 // populate a vector with enemy units that can be attacked by u;
@@ -188,10 +194,9 @@ void World :: enemies_within_attack_range(const Unit &u,
   targets.clear();
 
   // ... implement
-  size_t numOfUnits = units.size();
   // use push_back to add elements to targets
-  for (size_t i = 0; i < numOfUnits; i++) {
-    if (&u != units[i] && can_attack(u, *(units[i]))) {
+  for (size_t i = 0; i < units.size(); i++) {
+    if (can_attack(u, *(units[i]))) {
       targets.push_back(units[i]);
     }
   }
@@ -212,8 +217,8 @@ Unit* World :: random_weakest_target(Unit &u) const
   int minHpOld = 100;
   Unit* weakestTarget = nullptr;
   for (size_t i = 0; i < targets.size(); i++) {
-    if (((targets[i]) -> hp_old) < minHpOld) {
-      minHpOld = (targets[i]) -> hp_old;
+    if ((targets[i] -> hp_old) < minHpOld) {
+      minHpOld = targets[i] -> hp_old;
       weakestTarget = targets[i];
     }
   }
@@ -261,7 +266,7 @@ Unit* World :: random_most_dangerous_target(Unit &u) const
   double maxRatio = 0.0;
   Unit* mostDanger = nullptr;
   for (size_t i = 0; i < targets.size(); i++) {
-    double ratio = ((targets[i]) -> damage) / ((targets[i]) -> hp_old);
+    double ratio = (targets[i] -> damage) / ((targets[i]) -> hp_old);
     if (ratio > maxRatio) {
       maxRatio = ratio;
       mostDanger = targets[i];
@@ -291,12 +296,16 @@ int World :: red_score() const
     }
   }
   if ((red_count > 0) && (blue_count == 0)) {
+    // if blue all died out
     return 2;
   } else if ((red_count == 0) && (blue_count > 0)) {
+    // if red all died out
     return 0;
   } else if ((red_count == 0) && (blue_count == 0)) {
+    // if both died out
     return 1;
   } else {
+    // if there are still units on both sides
     return -1;
   }
 }
