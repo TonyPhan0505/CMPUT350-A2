@@ -1,21 +1,3 @@
-CMPUT 350 Assignment 2
-Due Wednesday Oct. 13, 22:00
-
-Submit the following files via eclass (Assignment 2):
-
-   README.txt World.cpp Marine.cpp Tank.cpp Experiments.txt Problem2.txt
-
-If you wrote a script to run your experiments for Problem 1, please submit
-that, too
-
-Please don't wait until the last minute to work on this assignment. Similar to
-the lab exercises, you may submit your files multiple times
-
-Also make sure that you follow the course's collaboration policy which is
-stated on the course webpage. README.txt must be completed
-
-============================================================================
-
 Problem 1 (RTS-Combat Simulator - 116 marks)
 --------------------------------------------
 
